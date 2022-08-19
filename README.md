@@ -31,3 +31,7 @@ sm_maprate_resetratings (or !maprate_resetratings)
   Delete ratings for the current map. Requires the admin vote flag ("k").
 
 Also accessible via the admin menu is the "Have All Players Rate This Map" command
+
+
+Credits to this post https://forums.alliedmods.net/showthread.php?t=164455
+I just updated the syntax and got it working after
