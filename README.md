@@ -34,4 +34,4 @@ Also accessible via the admin menu is the "Have All Players Rate This Map" comma
 
 
 Credits to this post https://forums.alliedmods.net/showthread.php?t=164455
-I just updated the syntax and got it working after
+I updated syntax and added Ip and port 
