@@ -7,7 +7,7 @@
 #define REQUIRE_PLUGIN
 #pragma newdecls required
 
-#define MR_VERSION	    "1.2"
+#define MR_VERSION	    "2.0"
 
 #define MAXLEN_MAP	    32
 
@@ -15,11 +15,12 @@
 #define CVAR_VERSION	    1
 #define CVAR_AUTORATE_TIME  2
 #define CVAR_ALLOW_REVOTE   3
-#define CVAR_TABLE	    4
+#define CVAR_TABLE	   		4
 #define CVAR_AUTORATE_DELAY 5
 #define CVAR_DISMISS	    6
 #define CVAR_RESULTS	    7
-#define CVAR_NUM_CVARS	    8
+#define hostip				8
+#define CVAR_NUM_CVARS	    9
 
 #define FLAG_RESET_RATINGS  ADMFLAG_VOTE
 
@@ -31,6 +32,7 @@ Handle g_admin_menu = INVALID_HANDLE;
 char g_table_name[32];
 int g_lastRateTime[MAXPLAYERS+1];
 bool g_dismiss = false;
+char g_sServerIP[64] = "";
 
 enum MapRatingOrigin
 {
@@ -69,6 +71,7 @@ public void OnPluginStart()
 	
 	HookEvent("player_death", Event_PlayerDeath);
 	AutoExecConfig(true, "maprate");
+	GetServerIP();
 	
 	g_dismiss = GetConVarBool(g_cvars[CVAR_DISMISS]);
 	
@@ -201,6 +204,17 @@ public Action Timer_AutoRateClient(Handle timer, any dp)
 	}
 }
 
+void GetServerIP()
+{
+	int aArray[4];
+	int iLongIP = GetConVarInt(FindConVar("hostip"));
+	aArray[0] = (iLongIP >> 24) & 0x000000FF;
+	aArray[1] = (iLongIP >> 16) & 0x000000FF;
+	aArray[2] = (iLongIP >> 8) & 0x000000FF;
+	aArray[3] = iLongIP & 0x000000FF;
+	Format(g_sServerIP, sizeof(g_sServerIP), "%d.%d.%d.%d:%i", aArray[0], aArray[1], aArray[2], aArray[3], GetConVarInt(FindConVar("hostport")));
+}
+
 stock bool ConnectDB()
 {
 	char db_config[64];
@@ -234,7 +248,7 @@ stock bool ConnectDB()
 	
 	if (g_SQLite)
 	{
-		Format(query, sizeof(query), "CREATE TABLE IF NOT EXISTS %s (steamid TEXT, map TEXT, rating INTEGER, rated DATE, UNIQUE (map, steamid))", g_table_name);
+		Format(query, sizeof(query), "CREATE TABLE IF NOT EXISTS %s (ip TEXT, steamid TEXT, map TEXT, rating INTEGER, rated DATE, UNIQUE (map, steamid))", g_table_name);
 		if (!SQL_FastQuery(db, query)) {
 			char sqlerror[300];
 			SQL_GetError(db, sqlerror, sizeof(sqlerror));
@@ -244,7 +258,7 @@ stock bool ConnectDB()
 	}
 	else
 	{
-		Format(query, sizeof(query), "CREATE TABLE IF NOT EXISTS %s (steamid VARCHAR(24), map VARCHAR(48), rating INT(4), rated DATETIME, UNIQUE KEY (map, steamid))", g_table_name);
+		Format(query, sizeof(query), "CREATE TABLE IF NOT EXISTS %s (ip VARCHAR(24), steamid VARCHAR(24), map VARCHAR(48), rating INT(4), rated DATETIME, UNIQUE KEY (map, steamid))", g_table_name);
 		if (!SQL_FastQuery(db, query))
 		{
 			char sqlerror[300];
@@ -283,7 +297,7 @@ public int Menu_Rate(Handle menu, MenuAction action, int param1, int param2)
 			/* param2 is the menu selection index starting from 0 */
 			int rating = param2 + 1 - (g_dismiss ? 1 : 0);
 			
-			char query[256];
+			char query[512];
 			
 			if (g_SQLite)
 			{
@@ -291,7 +305,7 @@ public int Menu_Rate(Handle menu, MenuAction action, int param1, int param2)
 			}
 			else
 			{
-				Format(query, sizeof(query), "INSERT INTO %s SET map = '%s', steamid = '%s', rating = %d, rated = NOW() ON DUPLICATE KEY UPDATE rating = %d, rated = NOW()", g_table_name, map, steamid, rating, rating);
+				Format(query, sizeof(query), "INSERT INTO %s SET ip = '%s', map = '%s', steamid = '%s', rating = %d, rated = NOW() ON DUPLICATE KEY UPDATE rating = %d, rated = NOW()", g_table_name, g_sServerIP, map, steamid, rating, rating);
 			}
 			LogAction(client, -1, "%L rated %s: %d", client, map, rating);
 			
