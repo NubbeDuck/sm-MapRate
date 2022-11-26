@@ -20,7 +20,9 @@
 #define CVAR_DISMISS	    6
 #define CVAR_RESULTS	    7
 #define hostip				8
-#define CVAR_NUM_CVARS	    9
+#define CVAR_HOSTIP			9
+#define CVAR_HOSTPORT		10
+#define CVAR_NUM_CVARS	    11
 
 #define FLAG_RESET_RATINGS  ADMFLAG_VOTE
 
@@ -68,6 +70,8 @@ public void OnPluginStart()
 	g_cvars[CVAR_AUTORATE_DELAY] = CreateConVar("sm_maprate_autorate_delay", "5", "After a player dies, wait this number of seconds before asking to rate if maprate_autorate_tie is non-zero", _);
 	g_cvars[CVAR_DISMISS] = CreateConVar("sm_maprate_dismiss", "0", "If non-zero, the first voting option will be \"Dismiss\"", _);
 	g_cvars[CVAR_RESULTS] = CreateConVar("sm_maprate_autoresults", "1", "If non-zero, the results graph will automatically be displayed when a player rates a map", _);
+	g_cvars[CVAR_HOSTIP] = CreateConVar("sm_ip", "0.0.0.0", "Only set if ip not found automatically", _);
+	g_cvars[CVAR_HOSTPORT] = CreateConVar("sm_port", ":00000", "Only set if port not found automatically", _);
 	
 	HookEvent("player_death", Event_PlayerDeath);
 	AutoExecConfig(true, "maprate");
